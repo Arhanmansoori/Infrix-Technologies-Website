@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import infrixLogo from './assets/infrix-logo.png'
 
 const services = [
@@ -143,6 +144,11 @@ const blogTopics = [
 ]
 
 const careerItems = ['Open Positions', 'Internships', 'Benefits', 'Life at Infrix', 'Culture', 'Apply Now']
+const starterPrompts = [
+  'Tell me about your AI services',
+  'What industries do you support?',
+  'How can I start a project?',
+]
 
 function SectionHeading({ eyebrow, title, text }) {
   return (
@@ -150,6 +156,151 @@ function SectionHeading({ eyebrow, title, text }) {
       <p className="eyebrow">{eyebrow}</p>
       <h2>{title}</h2>
       {text ? <p className="section-copy">{text}</p> : null}
+    </div>
+  )
+}
+
+function ChatAssistant() {
+  const [isOpen, setIsOpen] = useState(false)
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [messages, setMessages] = useState([
+    {
+      role: 'assistant',
+      content:
+        'Hi, I am the Infrix assistant. I can help you explore AI, data engineering, cloud, and software services. How may I help you today?',
+    },
+  ])
+
+  const sendMessage = async (text) => {
+    const trimmed = text.trim()
+
+    if (!trimmed || isLoading) {
+      return
+    }
+
+    const nextMessages = [...messages, { role: 'user', content: trimmed }]
+    setMessages(nextMessages)
+    setInput('')
+    setIsLoading(true)
+
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: nextMessages,
+        }),
+      })
+
+      const rawText = await response.text()
+      const data = rawText ? JSON.parse(rawText) : {}
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Unable to reach assistant right now.')
+      }
+
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content: data.message || 'I am here to help. Please try again.',
+        },
+      ])
+    } catch (error) {
+      setMessages((current) => [
+        ...current,
+        {
+          role: 'assistant',
+          content:
+            error.message ||
+            'The assistant is temporarily unavailable. Please contact Infrix directly.',
+        },
+      ])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    await sendMessage(input)
+  }
+
+  return (
+    <div className={`chatbot-shell${isOpen ? ' chatbot-open' : ''}`}>
+      {isOpen ? (
+        <section className="chatbot-panel" aria-label="Infrix assistant">
+          <div className="chatbot-header">
+            <div>
+              <p className="chatbot-eyebrow">Infrix Assistant</p>
+              <strong>How may I help you?</strong>
+            </div>
+            <button
+              type="button"
+              className="chatbot-close"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close assistant"
+            >
+              ×
+            </button>
+          </div>
+
+          <div className="chatbot-messages">
+            {messages.map((message, index) => (
+              <div
+                key={`${message.role}-${index}`}
+                className={`chatbot-message chatbot-message-${message.role}`}
+              >
+                {message.content}
+              </div>
+            ))}
+            {isLoading ? <div className="chatbot-message chatbot-message-assistant">Thinking...</div> : null}
+          </div>
+
+          <div className="chatbot-prompts">
+            {starterPrompts.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                className="chatbot-prompt"
+                onClick={() => sendMessage(prompt)}
+                disabled={isLoading}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+
+          <form className="chatbot-form" onSubmit={handleSubmit}>
+            <input
+              type="text"
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder="Ask about services, pricing, or solutions..."
+              aria-label="Chat message"
+            />
+            <button type="submit" disabled={isLoading}>
+              Send
+            </button>
+          </form>
+        </section>
+      ) : null}
+
+      <button
+        type="button"
+        className="chatbot-trigger"
+        onClick={() => setIsOpen((current) => !current)}
+        aria-label="Open assistant"
+      >
+        <span className="chatbot-trigger-badge">AI</span>
+        <span>
+          <strong>How may I help you?</strong>
+          <small>Chat with Infrix</small>
+        </span>
+      </button>
     </div>
   )
 }
@@ -447,6 +598,8 @@ export default function App() {
           <a href="#home">Terms</a>
         </div>
       </footer>
+
+      <ChatAssistant />
     </div>
   )
 }
