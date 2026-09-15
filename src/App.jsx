@@ -193,6 +193,7 @@ function SectionHeading({ eyebrow, title, text, align = 'left' }) {
 function CareersPage({ onBackHome }) {
   const [selectedRole, setSelectedRole] = useState(careerRoles[0].title)
   const [resumeName, setResumeName] = useState('')
+  const [submitted, setSubmitted] = useState(false)
 
   return (
     <div className="careers-page">
@@ -327,7 +328,13 @@ function CareersPage({ onBackHome }) {
               text="Fill out the details below and our team can review your profile for current and upcoming opportunities."
             />
 
-            <form className="career-form-panel">
+            <form
+              className="career-form-panel"
+              onSubmit={(event) => {
+                event.preventDefault()
+                setSubmitted(true)
+              }}
+            >
               <div className="career-form-grid">
                 <label>
                   <span>Full Name</span>
@@ -398,9 +405,13 @@ function CareersPage({ onBackHome }) {
 
               <div className="career-form-actions">
                 <button type="submit" className="primary-btn">
-                  Submit Application
+                  {submitted ? 'Application Received' : 'Submit Application'}
                 </button>
-                <p>Your details stay with Infrix Technologies recruitment review workflows.</p>
+                <p>
+                  {submitted
+                    ? 'Thank you — our hiring team will review your application.'
+                    : 'Your details stay with Infrix Technologies recruitment review workflows.'}
+                </p>
               </div>
             </form>
           </div>
@@ -559,6 +570,7 @@ function ChatAssistant() {
 
 export default function App() {
   const [currentHash, setCurrentHash] = useState(() => window.location.hash || '#home')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -568,6 +580,10 @@ export default function App() {
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
+
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [currentHash])
 
   const isCareersPage = currentHash.startsWith('#careers') || currentHash.startsWith('#career-form')
 
@@ -590,15 +606,26 @@ export default function App() {
       <div className="bg-grid" aria-hidden="true" />
 
       <header className="hero" id="home">
-        <nav className="topbar">
+        <nav className="topbar" aria-label="Primary navigation">
           <a href="#home" className="brand" aria-label="Infrix Technologies home">
             <img className="brand-logo" src={infrixLogo} alt="Infrix Technologies logo" />
           </a>
 
-          <div className="nav-links">
+          <button
+            type="button"
+            className="menu-toggle"
+            aria-label="Toggle navigation"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+          </button>
+
+          <div className={`nav-links${menuOpen ? ' nav-links-open' : ''}`}>
             <div className="nav-link-list">
               {navItems.map((item) => (
-                <a key={item.label} href={item.href}>
+                <a key={item.label} href={item.href} onClick={() => setMenuOpen(false)}>
                   {item.label}
                 </a>
               ))}
