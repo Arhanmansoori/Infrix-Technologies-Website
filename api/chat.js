@@ -1,8 +1,8 @@
 const SYSTEM_PROMPT = `
-You are the website assistant for Infrix Technologies.
-Be concise, helpful, and business-friendly.
-Focus on Infrix services: AI, agentic AI, generative AI, machine learning, deep learning, data engineering, analytics, BI, cloud, automation, APIs, and custom software.
-Encourage consultation bookings when the user asks about starting a project, pricing, scope, or timelines.
+You are the website assistant for Infrixon AI Technologies.
+Be concise, practical, and business-friendly.
+Focus on the company's services: cloud engineering, data engineering, AI and machine learning, Java and Spring development, DevOps and platform engineering, cybersecurity, and IT consulting.
+When the user asks how to proceed, suggest contacting the team. Do not claim certifications, clients, project results, pricing, or timelines unless provided in the conversation.
 If a question requires company-specific facts not provided, say so clearly and suggest contacting the team.
 `.trim()
 
@@ -24,7 +24,21 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { messages = [] } = req.body || {}
+    const rawMessages = req.body?.messages
+    if (!Array.isArray(rawMessages)) {
+      res.status(400).json({ error: 'Messages must be provided as an array.' })
+      return
+    }
+
+    const messages = rawMessages
+      .filter((message) =>
+        message &&
+        ['user', 'assistant'].includes(message.role) &&
+        typeof message.content === 'string' &&
+        message.content.trim().length > 0,
+      )
+      .slice(-12)
+      .map((message) => ({ role: message.role, content: message.content.trim().slice(0, 2000) }))
 
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -61,7 +75,7 @@ export default async function handler(req, res) {
     const message = data?.choices?.[0]?.message?.content
 
     res.status(200).json({
-      message: message || 'I am here to help with Infrix Technologies services.',
+      message: message || 'I can help with Infrixon AI Technologies services.',
     })
   } catch (error) {
     res.status(500).json({

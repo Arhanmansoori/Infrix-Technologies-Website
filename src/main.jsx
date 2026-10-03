@@ -11,8 +11,11 @@ import './brand-motion.css'
 import './readability-fixes.css'
 import './service-visuals.css'
 import './static-hero-logo.css'
-import './signal-system.css'
 import './orbit-motion.css'
+import './tech-stack.css'
+import './brand-finish.css'
+import './service-icons.css'
+import './platform-model.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -1,0 +1,9 @@
+.service-visual-core svg {
+  display: block;
+  color: inherit;
+}
+
+.mega a > b svg {
+  display: block;
+  color: currentColor;
+}

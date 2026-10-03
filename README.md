@@ -1,34 +1,38 @@
-# Infrix Technologies Website
+# Infrixon AI Technologies Website
 
-Premium React frontend for **Infrix Technologies**, an AI-first consulting company focused on Artificial Intelligence, Agentic AI, Data Engineering, Cloud Solutions, and Modern Software Development.
+Premium React frontend for **INFRIXON AI TECHNOLOGIES**, a cloud, data, AI, and software engineering company offering Java and Spring enterprise application development.
 
-This project is built as a responsive enterprise-style marketing website with a floating AI chat assistant, premium blue/navy branding, and a modern landing experience inspired by large consulting and technology firms.
+This project is a responsive React and Vite website for a technology engineering consultancy. It includes a service catalog, client-side routes, contact form preview, and a Groq-backed assistant endpoint.
 
 ## Overview
 
-- Enterprise-style homepage for Infrix Technologies
+- Enterprise-style homepage for Infrixon AI Technologies
 - React + Vite frontend
 - Responsive layout for desktop, tablet, and mobile
 - Bottom-right AI assistant widget
-- Groq-powered chatbot integration through a server-side dev middleware
-- Brand-aligned design using the provided Infrix logo
+- Groq-backed assistant through `/api/chat` (Vite development middleware and serverless handler)
+- Brand-aligned design using the Infrixon SVG wordmark and mark
 
 ## Tech Stack
 
 - React 18
 - Vite
 - CSS3
+- Simple Icons for technology brand marks
 - Groq Chat Completions API
+
+The showcased engineering technologies are grouped into Cloud, Data, AI & ML, Backend, DevOps, and Databases. The Java service includes Java, Spring Boot, Spring MVC, Spring Data JPA, Spring Security, Hibernate, Maven, Gradle, REST APIs, Kafka, PostgreSQL, MySQL, Redis, Docker, and Kubernetes.
 
 ## Features
 
 - Premium hero section and company positioning
-- Services, industries, solutions, technologies, portfolio, case studies, careers, and contact sections
+- Cloud engineering, data engineering, AI/ML, Java & Spring, DevOps, cybersecurity, and IT consulting pages
+- Industries, delivery approach, technology stack, and contact pages
 - Mobile-optimized navigation and layout
-- Trusted technology marquee
-- Glassmorphism-inspired UI
-- Floating chatbot assistant with starter prompts and message history
-- Secure API key handling through environment variables
+- Responsive navigation with service dropdown
+- Accessible technology stack marks and chat interactions
+- Server-side API key handling through environment variables
+- Contact form validation with an explicit preview-only status (no email delivery backend)
 
 ## Project Structure
 
@@ -36,12 +40,22 @@ This project is built as a responsive enterprise-style marketing website with a 
 .
 ├── api/
 │   └── chat.js
+├── public/
+│   └── assets/
+│       ├── infrixon-ai-technologies.png
+│       └── infrixon-mark.svg
 ├── src/
-│   ├── assets/
-│   │   └── infrix-logo.png
+│   ├── Heading.jsx
+│   ├── PlatformModel.jsx
+│   ├── ServiceIcon.jsx
+│   ├── TechStack.jsx
 │   ├── App.jsx
 │   ├── main.jsx
-│   └── styles.css
+│   ├── styles.css
+│   ├── tech-stack.css
+│   ├── platform-model.css
+│   ├── service-icons.css
+│   └── brand-finish.css
 ├── .env
 ├── index.html
 ├── package.json
@@ -112,11 +126,11 @@ If a key has ever been shared publicly, rotate it before deploying.
 
 ## Branding
 
-This website uses the provided **Infrix Technologies** logo and visual theme:
+This website uses the supplied **INFRIXON AI TECHNOLOGIES** logo and visual theme:
 
-- Primary: `#0B5FFF`
-- Secondary: `#001B44`
-- Accent: `#00C2FF`
+- Primary: `#0569F7`
+- Secondary: `#06173B`
+- Accent: `#00B9EF`
 - Background: `#FFFFFF`
 - Dark: `#0B1020`
 
@@ -133,21 +147,16 @@ If you want production deployment with the chatbot enabled, you should host it o
 
 For production, the `/api/chat` logic should live in a real server function instead of relying only on Vite dev middleware.
 
-## Future Improvements
+## Production Notes
 
-- Multi-page routing
-- Dedicated About, Services, and Contact pages
-- Lead capture form inside the chatbot
-- Real consultation form integration
-- Analytics and SEO enhancements
-- Blog CMS integration
-- Testimonials and client logos
-- Dark mode
+- The contact form currently validates input in the browser but does not submit to an email or CRM service.
+- Configure `GROQ_API_KEY` in the hosting environment before enabling `/api/chat` in production.
+- The site contains no client testimonials, customer logos, or quantified project claims unless verified content is added later.
 
 ## Authoring Notes
 
-This repo was tailored for **Infrix Technologies** and shaped around an enterprise consulting design direction rather than a freelancer portfolio style.
+This repo was tailored for **INFRIXON AI TECHNOLOGIES** and shaped around a cloud, data, AI, and enterprise engineering design direction.
 
 ## License
 
-This project is currently private and intended for Infrix Technologies internal/company use unless changed by the repository owner.
+This project is currently private and intended for INFRIXON AI TECHNOLOGIES internal/company use unless changed by the repository owner.
