@@ -1,0 +1,29 @@
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 200;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #06173b;
+  color: #fff;
+  font-weight: 700;
+  transform: translateY(-150%);
+  transition: transform .2s ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.project-copy .text-link {
+  margin-top: 16px;
+  font-size: .82rem;
+}
+
+@media (max-width: 760px) {
+  .project-copy .text-link {
+    min-height: 44px;
+    align-items: center;
+  }
+}

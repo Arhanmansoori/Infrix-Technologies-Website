@@ -1,0 +1,21 @@
+.orbit .ring {
+  border-style: dashed;
+  border-width: 1px;
+  border-color: rgba(6, 105, 247, .24);
+}
+
+.orbit .ring.b {
+  border-color: rgba(0, 185, 239, .38);
+  border-style: dotted;
+}
+
+.orbit .orbit-tag {
+  animation-duration: 6s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbit .ring,
+  .orbit .orbit-tag {
+    animation: none !important;
+  }
+}

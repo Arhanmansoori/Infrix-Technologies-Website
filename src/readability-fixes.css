@@ -1,0 +1,48 @@
+.header {
+  border-bottom: 2px solid #c8def4;
+  background: rgba(255, 255, 255, .96);
+}
+
+.header .nav {
+  border-bottom: 0;
+}
+
+.cta {
+  background: #06173b;
+}
+
+.cta > .backdrop {
+  opacity: .24;
+  background: linear-gradient(125deg, #0755c8, #06173b 52%, #087bc2);
+}
+
+.cta > .backdrop::after {
+  background: linear-gradient(90deg, rgba(6, 23, 59, .18), rgba(6, 23, 59, .08));
+}
+
+.cta > div:last-child {
+  color: #fff;
+}
+
+.cta > div:last-child .eyebrow {
+  color: #7fd8ff;
+}
+
+.cta > div:last-child h2 {
+  color: #fff;
+  text-shadow: 0 2px 18px rgba(0, 19, 59, .25);
+}
+
+.cta > div:last-child p {
+  color: rgba(255, 255, 255, .84);
+}
+
+@media (max-width: 760px) {
+  .header {
+    border-bottom-width: 2px;
+  }
+
+  .cta > .backdrop {
+    opacity: .2;
+  }
+}

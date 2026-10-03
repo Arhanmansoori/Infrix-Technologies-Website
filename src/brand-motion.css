@@ -1,0 +1,43 @@
+.app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell::before {
+  display: none;
+}
+
+.header {
+  width: 100%;
+  padding: 0;
+  background: rgba(255, 255, 255, .82);
+  border-bottom: 1px solid rgba(185, 213, 241, .72);
+  box-shadow: 0 8px 24px rgba(19, 68, 130, .08);
+}
+
+.header .nav {
+  position: relative;
+  width: min(100%, 1440px);
+  min-height: 76px;
+  padding: 10px max(24px, 4vw);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.header .nav::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(0, 112, 246, .035), transparent 45%, rgba(0, 185, 239, .04));
+  pointer-events: none;
+}
+
+@media (max-width: 760px) {
+  .header .nav {
+    min-height: 64px;
+    padding-inline: 16px;
+  }
+}

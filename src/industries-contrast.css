@@ -1,0 +1,35 @@
+/* Industries page contrast and scanability */
+.industry-list article {
+  position: relative;
+  color: var(--ink);
+}
+
+.industry-list article > b {
+  color: #0457cf;
+  font-weight: 800;
+}
+
+.industry-list article h2 {
+  color: #071b45;
+}
+
+.industry-list article p {
+  color: #536583;
+}
+
+.industry-list article > i {
+  color: #0457cf;
+  font-style: normal;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 8px rgba(255,255,255,.34), 0 15px 35px rgba(8,96,196,.1);
+}
+
+.industry-list article:hover > i {
+  border-color: #4aa8ed;
+  background: linear-gradient(145deg, #ffffff, #d8f2ff);
+}
+
+.project-copy .text-link {
+  margin-top: 16px;
+  font-size: .82rem;
+}
