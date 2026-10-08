@@ -1,153 +1,59 @@
-# Infrix Technologies Website
+# INFRIXON AI LABS website
 
-Premium React frontend for **Infrix Technologies**, an AI-first consulting company focused on Artificial Intelligence, Agentic AI, Data Engineering, Cloud Solutions, and Modern Software Development.
+React and Vite company website for cloud, data, AI, Java/Spring, DevOps, cybersecurity, and enterprise consulting. The work examples describe illustrative engagement patterns; they are not named client case studies.
 
-This project is built as a responsive enterprise-style marketing website with a floating AI chat assistant, premium blue/navy branding, and a modern landing experience inspired by large consulting and technology firms.
+## Local development
 
-## Overview
+Use Node.js 24 (see .nvmrc), then:
 
-- Enterprise-style homepage for Infrix Technologies
-- React + Vite frontend
-- Responsive layout for desktop, tablet, and mobile
-- Bottom-right AI assistant widget
-- Groq-powered chatbot integration through a server-side dev middleware
-- Brand-aligned design using the provided Infrix logo
-
-## Tech Stack
-
-- React 18
-- Vite
-- CSS3
-- Groq Chat Completions API
-
-## Features
-
-- Premium hero section and company positioning
-- Services, industries, solutions, technologies, portfolio, case studies, careers, and contact sections
-- Mobile-optimized navigation and layout
-- Trusted technology marquee
-- Glassmorphism-inspired UI
-- Floating chatbot assistant with starter prompts and message history
-- Secure API key handling through environment variables
-
-## Project Structure
-
-```text
-.
-├── api/
-│   └── chat.js
-├── src/
-│   ├── assets/
-│   │   └── infrix-logo.png
-│   ├── App.jsx
-│   ├── main.jsx
-│   └── styles.css
-├── .env
-├── index.html
-├── package.json
-├── README.md
-└── vite.config.js
-```
-
-## Getting Started
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Add environment variables
-
-Create a `.env` file in the project root:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-## Run Locally
-
-Start the development server:
-
-```bash
+```sh
+npm ci
 npm run dev
 ```
 
-Then open the local Vite URL shown in the terminal.
+The assistant is optional. For local chat, copy .env.example to .env and set GROQ_API_KEY. Keep the key on the server; do not prefix it with VITE_ or put it in frontend code.
 
-## Build for Production
+## Production build
 
-```bash
+```sh
 npm run build
-```
-
-Preview the production build:
-
-```bash
 npm run preview
 ```
 
-## Chatbot Setup
+The production frontend is generated in dist/. Vite preview serves the frontend only; it does not run api/chat.js.
 
-The website includes a floating assistant in the bottom-right corner.
+## Deploy to Vercel
 
-### How it works
+1. Import this repository into Vercel.
+2. Select Node.js 24 in the project settings. The included vercel.json selects Vite, runs npm run build, and serves dist/.
+3. To enable the assistant, add GROQ_API_KEY in the project's server environment variables before deploying. api/chat.js handles /api/chat.
+4. Deploy. Check a direct service URL such as /services/cloud-services and refresh it. The included SPA rewrite serves frontend routes while leaving /api/ and /assets/ requests separate.
+5. Check the theme toggle, mobile menu, contact email draft, and assistant on the deployed domain.
 
-- The React frontend sends chat requests to `/api/chat`
-- During local development, Vite middleware in `vite.config.js` handles that route
-- The middleware forwards requests to the **Groq Chat Completions API**
-- The API key stays on the server side through the `.env` file
+See [Vercel's Vite guide](https://vercel.com/docs/frameworks/frontend/vite) and [rewrite configuration](https://vercel.com/docs/project-configuration/vercel-json).
 
-### Current chatbot model
+## Other hosting
 
-```text
-llama-3.3-70b-versatile
-```
+For a static host or cPanel, upload the contents of dist/ to the site's document root. Configure the host to serve index.html for frontend routes that do not match a real file. The Vercel configuration is not used by those hosts.
 
-### Important security note
+Static hosting serves the website and contact email flow. The assistant needs a compatible server endpoint at /api/chat; copying dist/ does not deploy the Node handler. The widget shows a contact fallback when the endpoint is unavailable.
 
-Do not hardcode API keys into React components or commit them to GitHub.
+## Contact flow
 
-If a key has ever been shared publicly, rotate it before deploying.
+The contact form validates the visitor's details and opens their email application with an addressed, prefilled draft. The visitor sends that draft in their email application. The website does not claim to have sent or stored an enquiry. A configured email application is required; direct email links are also available.
 
-## Branding
+## Design and source files
 
-This website uses the provided **Infrix Technologies** logo and visual theme:
+All pages use the Deep Tech Enterprise theme: warm white, dark navy (#071F2B), primary blue (#006DFF), cyan (#00BDF2), and supporting teal (#157A73), with matching dark-mode surfaces. Blue drives actions and light-mode accents; small blue text uses #005FD9 for contrast on neutral and tinted surfaces. Cyan leads on navy sections and in dark mode; teal is reserved for secondary diagram details. Manrope headings and Inter body text are served locally from public/assets/fonts/; their license files are included there.
 
-- Primary: `#0B5FFF`
-- Secondary: `#001B44`
-- Accent: `#00C2FF`
-- Background: `#FFFFFF`
-- Dark: `#0B1020`
+- src/App.jsx — content, routes, navigation, contact form, and assistant interface.
+- src/main.css — structural layout, responsive navigation, forms, and footer.
+- src/editorial.css — homepage sections and original technical artwork.
+- src/theme.css — shared palette, fonts, component styles, and alignment rules.
+- src/ServiceIcon.jsx and src/TechStack.jsx — service and technology icons.
+- src/PlatformModel.jsx — shared engineering-layer diagram used on About, including security across every layer.
+- api/chat.js — production serverless assistant endpoint.
+- vite.config.js — Vite and local assistant middleware.
+- vercel.json — Vercel build and frontend routing configuration.
 
-## Deployment Notes
-
-This repo currently runs well for local development with Vite.
-
-If you want production deployment with the chatbot enabled, you should host it on a platform that supports server-side API routes or backend functions, such as:
-
-- Vercel
-- Netlify Functions
-- Render
-- Node/Express custom hosting
-
-For production, the `/api/chat` logic should live in a real server function instead of relying only on Vite dev middleware.
-
-## Future Improvements
-
-- Multi-page routing
-- Dedicated About, Services, and Contact pages
-- Lead capture form inside the chatbot
-- Real consultation form integration
-- Analytics and SEO enhancements
-- Blog CMS integration
-- Testimonials and client logos
-- Dark mode
-
-## Authoring Notes
-
-This repo was tailored for **Infrix Technologies** and shaped around an enterprise consulting design direction rather than a freelancer portfolio style.
-
-## License
-
-This project is currently private and intended for Infrix Technologies internal/company use unless changed by the repository owner.
+The stylesheets load in the order main.css, editorial.css, theme.css. Keep shared colors and typography in theme.css so every page stays consistent.
