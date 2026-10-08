@@ -8,78 +8,60 @@ If a question requires company-specific facts not provided, say so clearly and s
 
 const GROQ_MODEL = 'llama-3.3-70b-versatile'
 
-export default async function handler(req, res) {
+const MAX_BODY_BYTES = 32 * 1024
+const unavailable = 'The assistant is unavailable right now. Please contact our team.'
+
+function reply(res, status, payload) {
+  res.statusCode = status
+  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+  res.setHeader('Cache-Control', 'no-store')
+  res.end(JSON.stringify(payload))
+}
+
+export async function handleChat(req, res, { apiKey = process.env.GROQ_API_KEY, fetchImpl = fetch } = {}) {
   if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Method not allowed' })
-    return
+    res.setHeader('Allow', 'POST')
+    return reply(res, 405, { error: 'Method not allowed' })
   }
-
-  const apiKey = process.env.GROQ_API_KEY
-
-  if (!apiKey) {
-    res.status(500).json({
-      error: 'Missing GROQ_API_KEY on the server. Add it to your deployment environment.',
-    })
-    return
-  }
-
   try {
-    const rawMessages = req.body?.messages
-    if (!Array.isArray(rawMessages)) {
-      res.status(400).json({ error: 'Messages must be provided as an array.' })
-      return
+    let body = req.body
+    if (body === undefined) {
+      const chunks = []
+      let size = 0
+      for await (const chunk of req) {
+        size += Buffer.byteLength(chunk)
+        if (size > MAX_BODY_BYTES) return reply(res, 413, { error: 'Message history is too large.' })
+        chunks.push(Buffer.from(chunk))
+      }
+      body = Buffer.concat(chunks).toString('utf8')
     }
-
-    const messages = rawMessages
-      .filter((message) =>
-        message &&
-        ['user', 'assistant'].includes(message.role) &&
-        typeof message.content === 'string' &&
-        message.content.trim().length > 0,
-      )
-      .slice(-12)
-      .map((message) => ({ role: message.role, content: message.content.trim().slice(0, 2000) }))
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    if (typeof body === 'string' || Buffer.isBuffer(body)) {
+      if (Buffer.byteLength(body) > MAX_BODY_BYTES) return reply(res, 413, { error: 'Message history is too large.' })
+      try { body = JSON.parse(body.toString()) } catch {
+        return reply(res, 400, { error: 'Invalid JSON request.' })
+      }
+    } else if (Buffer.byteLength(JSON.stringify(body ?? {})) > MAX_BODY_BYTES) {
+      return reply(res, 413, { error: 'Message history is too large.' })
+    }
+    if (!Array.isArray(body?.messages)) return reply(res, 400, { error: 'Messages must be provided as an array.' })
+    const messages = body.messages.filter((message) => message && ['user', 'assistant'].includes(message.role) && typeof message.content === 'string' && message.content.trim())
+      .slice(-12).map(({ role, content }) => ({ role, content: content.trim().slice(0, 2000) }))
+    if (!messages.length || messages.at(-1).role !== 'user') return reply(res, 400, { error: 'Please provide a user message.' })
+    if (!apiKey) return reply(res, 503, { error: unavailable })
+    const response = await fetchImpl('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: GROQ_MODEL,
-        temperature: 0.4,
-        max_tokens: 1024,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          ...messages.map((message) => ({
-            role: message.role,
-            content: message.content,
-          })),
-        ],
-      }),
+      signal: AbortSignal.timeout(20000),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({ model: GROQ_MODEL, temperature: 0.4, max_tokens: 1024, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages] }),
     })
-
+    if (!response.ok) return reply(res, 502, { error: unavailable })
     const data = await response.json()
-
-    if (!response.ok) {
-      res.status(response.status).json({
-        error:
-          data?.error?.message ||
-          data?.error ||
-          `Groq request failed with status ${response.status}.`,
-      })
-      return
-    }
-
     const message = data?.choices?.[0]?.message?.content
-
-    res.status(200).json({
-      message: message || 'I can help with INFRIXON AI LABS services.',
-    })
-  } catch (error) {
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Unexpected server error.',
-    })
+    if (typeof message !== 'string' || !message.trim()) return reply(res, 502, { error: unavailable })
+    return reply(res, 200, { message })
+  } catch {
+    return reply(res, 502, { error: unavailable })
   }
 }
+
+export default handleChat

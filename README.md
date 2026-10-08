@@ -49,6 +49,7 @@ All pages use the Deep Tech Enterprise theme: warm white, dark navy (#071F2B), p
 - src/App.jsx — content, routes, navigation, contact form, and assistant interface.
 - src/main.css — structural layout, responsive navigation, forms, and footer.
 - src/editorial.css — homepage sections and original technical artwork.
+- src/business.css ? Infrixon homepage hero, brand artwork, and service navigation.
 - src/theme.css — shared palette, fonts, component styles, and alignment rules.
 - src/ServiceIcon.jsx and src/TechStack.jsx — service and technology icons.
 - src/PlatformModel.jsx — shared engineering-layer diagram used on About, including security across every layer.
@@ -56,4 +57,24 @@ All pages use the Deep Tech Enterprise theme: warm white, dark navy (#071F2B), p
 - vite.config.js — Vite and local assistant middleware.
 - vercel.json — Vercel build and frontend routing configuration.
 
-The stylesheets load in the order main.css, editorial.css, theme.css. Keep shared colors and typography in theme.css so every page stays consistent.
+The stylesheets load in the order main.css, editorial.css, theme.css, business.css. Keep shared colors and typography in theme.css so every page stays consistent.
+
+## Verification
+
+Run `npm test` for assistant request validation and upstream failure handling. Run `npm run check:routes` to render all 14 routes and verify headings, IDs, internal links, anchors, and referenced assets. Run `npm run build` before deployment.
+
+Local and production chat use the same handler in `api/chat.js`. Requests are limited to 32 KiB, recent conversation history is bounded, and provider calls time out after 20 seconds. Provider and configuration failures return a public contact fallback without exposing server details. Set provider usage limits before enabling a public deployment; this repository does not include a durable distributed rate limiter.
+
+## Photography
+
+The homepage uses illustrative stock workplace photography from Unsplash (`photo-1522071820081-009f0129c71c`), stored locally as `public/assets/workplace-collaboration.jpg`. It does not identify the people pictured as Infrixon staff. Replace it with approved company photography when available.
+
+## Reference review
+
+Appnovation's homepage, services, about, work, and contact pages were reviewed for information hierarchy and navigation on 2026-10-08. Infrixon's implementation uses original copy, its own navy/blue palette, curved surfaces, four practice summaries, illustrative project scopes, and direct contact options. The homepage removes the duplicated technology catalogue and delivery timeline; detailed technology content stays on service pages, and the lifecycle remains on About. No client logos, case-study metrics, testimonials, or company claims were taken from the reference.
+
+## Responsive sizing
+
+`src/responsive.css` loads last and owns final viewport sizing: 1180px content width, 1280px feature frames, and fluid 16?32px gutters. Navigation switches to the menu at 1180px; the hero stacks at 760px; service rails, forms, and card grids simplify for narrow phones. Avoid overriding these breakpoints in other stylesheets.
+
+Browser viewport verification is still required at 320, 375, 540, 768, 1024, 1280, and 1440px, including menu-open and chat-open states. Route rendering checks do not measure browser layout or overflow.

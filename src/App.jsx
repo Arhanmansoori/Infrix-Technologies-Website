@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Heading from './Heading'
 import ServiceIcon from './ServiceIcon'
 import TechStack from './TechStack'
 import PlatformModel from './PlatformModel'
+import { serviceDetails } from './serviceDetails'
 
 const services = [
   {
@@ -86,11 +87,6 @@ const homeFaqs = [
   ['Do you work with startups and established teams?', 'Yes. We support early-stage teams, growing businesses, and established organizations modernizing their products or platforms.'],
   ['Can you work with our existing technology team?', 'Absolutely. We can lead delivery, add specialist capacity, or work alongside your team as a flexible engineering partner.'],
 ]
-const solutionAreas = [
-  ['01', 'Modernize with confidence', 'Reduce platform friction and move legacy systems forward through focused architecture, cloud migration, and incremental delivery.', 'Cloud Engineering'],
-  ['02', 'Make data work harder', 'Create reliable data foundations that connect operational systems to useful analytics and better decisions.', 'Data Engineering'],
-  ['03', 'Put AI to work', 'Move from promising ideas to useful, governed AI capabilities that fit real workflows and business priorities.', 'AI & Machine Learning'],
-]
 const projectBlueprints = [
   ['Cloud foundations', 'Plan a cloud migration with clear environment boundaries, access controls, infrastructure as code, and deployment workflows.', 'Cloud engineering · Platform'],
   ['Connected data platforms', 'Bring data from separate systems into reliable pipelines for reporting, analytics, and downstream applications.', 'Data engineering · Analytics'],
@@ -99,6 +95,11 @@ const projectBlueprints = [
 
 const scrollBehavior = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
 const go = (path) => {
+  if (window.location.pathname + window.location.hash === path) {
+    if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ behavior: scrollBehavior() })
+    else window.scrollTo({ top: 0, behavior: scrollBehavior() })
+    return
+  }
   window.history.pushState({}, '', path)
   window.dispatchEvent(new PopStateEvent('popstate'))
   if (!window.location.hash) window.scrollTo({ top: 0, behavior: scrollBehavior() })
@@ -131,6 +132,9 @@ function ThemeToggle({ theme, onToggle }) {
 function Header({ path, theme, onThemeToggle }) {
   const [open, setOpen] = useState(false)
   const [drop, setDrop] = useState(false)
+  const navigationRef = useRef(null)
+  const menuRef = useRef(null)
+  const servicesRef = useRef(null)
   const [scrolled, setScrolled] = useState(window.scrollY > 8)
   const activeClass = (href) => path === href ? 'active' : undefined
 
@@ -144,12 +148,21 @@ function Header({ path, theme, onThemeToggle }) {
     if (!open && !drop) return
     const closeOnEscape = (event) => {
       if (event.key === 'Escape') {
-        setOpen(false)
-        setDrop(false)
+        if (drop) { setDrop(false); servicesRef.current?.focus() }
+        else { setOpen(false); menuRef.current?.focus() }
       }
     }
     window.addEventListener('keydown', closeOnEscape)
     return () => window.removeEventListener('keydown', closeOnEscape)
+  }, [open, drop])
+
+  useEffect(() => {
+    if (!open && !drop) return
+    const dismiss = (event) => {
+      if (!navigationRef.current?.contains(event.target)) { setOpen(false); setDrop(false) }
+    }
+    document.addEventListener('pointerdown', dismiss)
+    return () => document.removeEventListener('pointerdown', dismiss)
   }, [open, drop])
 
   useEffect(() => {
@@ -158,19 +171,19 @@ function Header({ path, theme, onThemeToggle }) {
   }, [path])
 
   return <header className={`header${scrolled ? ' scrolled' : ''}`}>
-    <div className="container nav">
+    <div className="container nav" ref={navigationRef}>
       <a className="brand-link" href="/" aria-label="INFRIXON AI LABS home" onClick={(e) => { e.preventDefault(); go('/') }}><Brand /></a>
-      <button className="menu" onClick={() => setOpen(!open)} aria-label="Toggle navigation" aria-expanded={open} aria-controls="primary-navigation"><span /><span /><span /></button>
+      <button ref={menuRef} className="menu" onClick={() => setOpen(!open)} aria-label="Toggle navigation" aria-expanded={open} aria-controls="primary-navigation"><span /><span /><span /></button>
       <nav id="primary-navigation" className={open ? 'nav-open' : ''} aria-label="Primary navigation">
         <a className={activeClass('/')} aria-current={path === '/' ? 'page' : undefined} href="/" onClick={(e) => { e.preventDefault(); go('/'); setOpen(false) }}>Home</a>
         <a className={activeClass('/about')} aria-current={path === '/about' ? 'page' : undefined} href="/about" onClick={(e) => { e.preventDefault(); go('/about'); setOpen(false) }}>About</a>
-        <div className="drop" onMouseEnter={() => setDrop(true)} onMouseLeave={() => setDrop(false)}>
-          <button onClick={() => setDrop(!drop)} aria-expanded={drop} aria-controls="services-navigation" aria-haspopup="true">Services⌄</button>
-          {drop && <div id="services-navigation" className="mega">{services.map((s) => <a className={path === servicePath(s.slug) ? 'active' : undefined} aria-current={path === servicePath(s.slug) ? 'page' : undefined} key={s.slug} href={servicePath(s.slug)} onClick={(e) => { e.preventDefault(); go(servicePath(s.slug)); setOpen(false); setDrop(false) }}><b aria-hidden="true"><ServiceIcon name={s.icon} /></b><span><strong>{s.title}</strong><small>{s.short}</small></span></a>)}</div>}
+        <div className="drop" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setDrop(false) }} onMouseEnter={() => setDrop(true)} onMouseLeave={() => setDrop(false)}>
+          <button ref={servicesRef} className={path.startsWith('/services') ? 'active' : undefined} onClick={() => setDrop(!drop)} aria-expanded={drop} aria-controls="services-navigation" aria-haspopup="true">Services⌄</button>
+          {drop && <div id="services-navigation" className="mega"><a className="mega-overview" href="/services" onClick={event => { event.preventDefault(); go('/services'); setOpen(false); setDrop(false) }}><span><strong>Explore our services</strong><small>Advisory, cloud, data, AI, and software engineering.</small></span><span aria-hidden="true">&#8599;</span></a>{services.map((s) => <a className={path === servicePath(s.slug) ? 'active' : undefined} aria-current={path === servicePath(s.slug) ? 'page' : undefined} key={s.slug} href={servicePath(s.slug)} onClick={(e) => { e.preventDefault(); go(servicePath(s.slug)); setOpen(false); setDrop(false) }}><b aria-hidden="true"><ServiceIcon name={s.icon} /></b><span><strong>{s.title}</strong><small>{s.short}</small></span></a>)}</div>}
         </div>
-        {[['Industries', '/industries'], ['Work', '/portfolio'], ['Contact', '/contact']].map(([label, href]) => <a className={activeClass(href)} aria-current={path === href ? 'page' : undefined} key={href} href={href} onClick={(e) => { e.preventDefault(); go(href); setOpen(false) }}>{label}</a>)}
+        {[['Industries', '/industries'], ['Approach', '/portfolio'], ['Contact', '/contact']].map(([label, href]) => <a className={activeClass(href)} aria-current={path === href ? 'page' : undefined} key={href} href={href} onClick={(e) => { e.preventDefault(); go(href); setOpen(false) }}>{label}</a>)}
         <ThemeToggle theme={theme} onToggle={onThemeToggle} />
-        <a className="nav-cta" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact'); setOpen(false) }}>Talk to an Expert ↗</a>
+        <a className="nav-cta" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact'); setOpen(false) }}>Discuss a project ↗</a>
       </nav>
     </div>
   </header>
@@ -179,8 +192,8 @@ function Header({ path, theme, onThemeToggle }) {
 function Footer() {
   return <footer>
     <div className="container footer-grid">
-      <div><a className="brand-link footer-brand" href="/" aria-label="INFRIXON AI LABS home" onClick={(e) => { e.preventDefault(); go('/') }}><Brand /></a><p>Cloud, data, AI, Java, and software engineering for systems built to last.</p><a className="text-link" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact') }}>Start a conversation ↗</a></div>
-      <div><h3>Company</h3>{[['About', '/about'], ['Work', '/portfolio'], ['Industries', '/industries'], ['Contact', '/contact']].map(([label, href]) => <a key={href} href={href} onClick={(e) => { e.preventDefault(); go(href) }}>{label}</a>)}</div>
+      <div><a className="brand-link footer-brand" href="/" aria-label="INFRIXON AI LABS home" onClick={(e) => { e.preventDefault(); go('/') }}><Brand /></a><p>IT consulting and engineering across cloud, data, AI, and enterprise software.</p><a className="text-link" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact') }}>Start a conversation ↗</a></div>
+      <div><h3>Company</h3>{[['About', '/about'], ['Approach', '/portfolio'], ['Industries', '/industries'], ['Contact', '/contact']].map(([label, href]) => <a key={href} href={href} onClick={(e) => { e.preventDefault(); go(href) }}>{label}</a>)}</div>
       <div><h3>Services</h3>{services.map((s) => <a key={s.slug} href={servicePath(s.slug)} onClick={(e) => { e.preventDefault(); go(servicePath(s.slug)) }}>{s.title}</a>)}</div>
       <div><h3>Connect</h3><p>India · Serving teams worldwide</p><a href="mailto:work@infrixtechnologies.com">work@infrixtechnologies.com</a></div>
     </div>
@@ -284,29 +297,12 @@ const industryFocus = {
   'SaaS & Startups': { icon: 'startup', text: 'Product architecture, cloud foundations, and application delivery.' },
 }
 
-function BusinessSolutions() {
-  const [selected, setSelected] = useState(0)
-  const [number, title, text, serviceTitle] = solutionAreas[selected]
-  const service = services.find((item) => item.title === serviceTitle)
-  return <section className="section business-solutions" aria-labelledby="business-solutions-title"><div className="container">
-    <div className="editorial-section-head"><div className="heading"><span className="eyebrow">02 / Business solutions</span><h2 id="business-solutions-title">What needs to change in your business?</h2><p>Start with the challenge. Explore the engineering work that can address it.</p></div></div>
-    <div className="business-solution-layout">
-      <div className="business-priorities" role="group" aria-label="Choose a business priority">{solutionAreas.map(([n, label, , capability], index) => <button type="button" key={n} aria-pressed={selected === index} aria-controls="business-solution-detail" onClick={() => setSelected(index)}><span>{n}</span><span><strong>{label}</strong><small>{capability}</small></span><b aria-hidden="true">↗</b></button>)}</div>
-      <div id="business-solution-detail" className="business-solution-detail" role="region" aria-labelledby="business-solution-heading">
-        <div className="solution-detail-heading"><span className="solution-detail-icon"><ServiceIcon name={service.icon} /></span><span className="eyebrow">Solution {number} / {service.title}</span></div>
-        <h3 id="business-solution-heading">{title}</h3><p>{text}</p><ul>{service.features.slice(0, 3).map((feature) => <li key={feature}>{feature}</li>)}</ul>
-        <div className="solution-detail-footer"><span>{service.tech.slice(0, 4).join(' · ')}</span><a className="text-link" href={servicePath(service.slug)} onClick={(event) => { event.preventDefault(); go(servicePath(service.slug)) }}>Explore {service.title} ↗</a></div>
-      </div>
-    </div>
-  </div></section>
-}
-
 function FeaturedWork() {
   const [selected, setSelected] = useState(0)
   const [title, text, tags] = projectBlueprints[selected]
   const service = services[selected]
   return <section className="section container editorial-projects" aria-labelledby="featured-work-title">
-    <div className="editorial-section-head"><div className="heading"><span className="eyebrow">05 / Engineering in practice</span><h2 id="featured-work-title">A closer look at what we can build.</h2><p>Representative project approaches across cloud, data, and AI.</p></div><a className="text-link" href="/portfolio" onClick={(event) => { event.preventDefault(); go('/portfolio') }}>Explore our work ↗</a></div>
+    <div className="editorial-section-head"><div className="heading"><span className="eyebrow">Project approaches</span><h2 id="featured-work-title">A practical starting point for your project.</h2><p>Example scopes to help you plan a conversation about cloud, data, or AI.</p></div><a className="text-link" href="/portfolio" onClick={(event) => { event.preventDefault(); go('/portfolio') }}>See project approaches ↗</a></div>
     <div className="work-selector" role="group" aria-label="Choose a project approach">{projectBlueprints.map(([name], index) => <button type="button" key={name} aria-pressed={selected === index} aria-controls="featured-work-detail" onClick={() => setSelected(index)}><span>0{index + 1}</span>{name}<b aria-hidden="true">↗</b></button>)}</div>
     <div id="featured-work-detail" className="featured-work-detail" role="region" aria-labelledby="featured-work-heading"><div className={'featured-work-visual project-' + selected}><ProjectArtwork index={selected} /></div><div className="featured-work-copy"><span className="eyebrow">{tags}</span><h3 id="featured-work-heading">{title}</h3><p>{text}</p><span className="work-scope-label">Typical scope</span><ul>{service.features.slice(0, 3).map((feature) => <li key={feature}>{feature}</li>)}</ul><a className="text-link" href="/contact" onClick={(event) => { event.preventDefault(); go('/contact') }}>Discuss a similar project ↗</a></div></div>
     <p className="work-disclaimer">Illustrative engagement patterns, not named client case studies or completed client results.</p>
@@ -314,36 +310,40 @@ function FeaturedWork() {
 }
 
 function IndustryOverview() {
-  return <section className="section editorial-industries" aria-labelledby="industry-overview-title"><div className="container"><div className="editorial-section-head"><div className="heading"><span className="eyebrow">06 / Industries we support</span><h2 id="industry-overview-title">Engineering that understands your operations.</h2><p>The same technology needs a different approach in every industry. Start with the workflows, data, and people involved.</p></div><a className="text-link" href="/industries" onClick={(event) => { event.preventDefault(); go('/industries') }}>Explore industries ↗</a></div><div className="sector-grid">{industries.map((industry) => <a className="sector-card" key={industry} href={'/industries#' + industryId(industry)} onClick={(event) => { event.preventDefault(); go('/industries#' + industryId(industry)) }}><span className="sector-icon"><ServiceIcon name={industryFocus[industry].icon} /></span><h3>{industry}</h3><p>{industryFocus[industry].text}</p><span className="sector-link">Explore industry <b aria-hidden="true">↗</b></span></a>)}</div></div></section>
+  return <section className="section editorial-industries" aria-labelledby="industry-overview-title"><div className="container"><div className="editorial-section-head"><div className="heading"><span className="eyebrow">Industry context we support</span><h2 id="industry-overview-title">Engineering that understands your operations.</h2><p>The same technology needs a different approach in every industry. Start with the workflows, data, and people involved.</p></div><a className="text-link" href="/industries" onClick={(event) => { event.preventDefault(); go('/industries') }}>Explore industries ↗</a></div><div className="sector-grid">{industries.map((industry) => <a className="sector-card" key={industry} href={'/industries#' + industryId(industry)} onClick={(event) => { event.preventDefault(); go('/industries#' + industryId(industry)) }}><span className="sector-icon"><ServiceIcon name={industryFocus[industry].icon} /></span><h3>{industry}</h3><p>{industryFocus[industry].text}</p><span className="sector-link">Explore industry <b aria-hidden="true">↗</b></span></a>)}</div></div></section>
 }
 
 function Home() {
-  const [category, setCategory] = useState('Cloud')
   return <div className="editorial-home">
     <section className="editorial-hero">
       <div className="container editorial-hero-grid">
         <div className="editorial-hero-copy">
-          <span className="eyebrow">INFRIXON AI LABS / CLOUD · DATA · AI</span>
-          <h1>Engineering<br />intelligent systems.<br /><em>Data to production.</em></h1>
-          <p>Cloud, data, AI, Java, and platform engineering for businesses building systems that need to scale.</p>
-          <p className="editorial-manifesto">Built with ambition. Driven by innovation.<br />Powered by Artificial Intelligence.</p>
-          <div className="hero-capabilities" aria-label="Explore core capabilities">{[[services[0], 'Cloud & platform'], [services[1], 'Data engineering'], [services[2], 'Applied AI']].map(([item, label]) => <a key={item.slug} href={servicePath(item.slug)} onClick={(event) => { event.preventDefault(); go(servicePath(item.slug)) }}><ServiceIcon name={item.icon} /><span>{label}</span><b aria-hidden="true">↗</b></a>)}</div>
-          <div className="buttons"><a className="button editorial-primary" href="/contact" onClick={(event) => { event.preventDefault(); go('/contact') }}>Talk to an Expert <span>↗</span></a><a className="editorial-hero-link" href="#expertise">Explore our capabilities <span>↓</span></a></div>
+          <span className="eyebrow"><i className="business-label-dot" /> IT SERVICES & TECHNOLOGY CONSULTING</span>
+          <h1>IT expertise for<br /><em>the work ahead.</em></h1>
+          <p>IT consulting and engineering for cloud, data, AI, and enterprise applications.</p>
+          <div className="buttons"><a className="button editorial-primary" href="/contact" onClick={(event) => { event.preventDefault(); go('/contact') }}>Talk about your project <span aria-hidden="true">&#8599;</span></a><a className="editorial-hero-link" href="#expertise">View our services <span aria-hidden="true">&rarr;</span></a></div>
         </div>
-        <EngineeringVisual />
+        <figure className="consultancy-photo">
+          <img src="/assets/workplace-collaboration.jpg" alt="Software professionals collaborating around laptops in a shared workspace" width="1400" height="934" fetchpriority="high" />
+        </figure>
       </div>
-      <div className="container hero-baseline"><span>ARCHITECT · ENGINEER · OPERATE</span><span>India · Working with teams worldwide</span><a href="#introduction">SCROLL TO EXPLORE ↓</a></div>
     </section>
-    <section className="capability-strip" aria-label="Representative technologies"><div className="container"><span>OUR TECHNOLOGY ECOSYSTEM</span><div>{['AWS', 'Azure', 'Microsoft Fabric', 'Databricks', 'Java & Spring', 'Kubernetes'].map((name) => <span key={name}><i />{name}</span>)}</div></div></section>
-    <section id="introduction" className="section container editorial-intro"><span className="eyebrow">01 / Who we are</span><div><h2>Engineering for the systems<br /><span>your business runs on.</span></h2><div className="intro-body"><p>INFRIXON AI LABS brings consulting and engineering together across cloud, data, AI, and software. We work with teams that need to migrate infrastructure, connect their data, modernize Java applications, or introduce AI into an existing workflow.</p><a className="text-link" href="/about" onClick={(event) => { event.preventDefault(); go('/about') }}>About Infrixon <span>↗</span></a></div></div></section>
-    <BusinessSolutions />
-    <section id="expertise" className="editorial-expertise section"><div className="container"><div className="editorial-section-head"><Heading eyebrow="03 / Our capabilities" title="Cloud, data, AI, and software engineering." text="Work with us on a specific technical problem or bring several capabilities together for a larger project." /><a className="text-link" href="/services" onClick={(event) => { event.preventDefault(); go('/services') }}>All services ↗</a></div><div className="service-grid capability-grid">{services.map((item, index) => <ServiceCard item={item} index={index} key={item.slug} />)}</div></div></section>
-    <EngineeringModel />
+    <section id="expertise" className="section practice-section"><div className="container"><div className="editorial-section-head"><Heading eyebrow="Our expertise" title="How we can help." /><a className="text-link" href="/services" onClick={event => { event.preventDefault(); go('/services') }}>Explore all services <span aria-hidden="true">&#8599;</span></a></div><div className="practice-grid">{[
+      ['consulting', 'Technology advisory', 'Understand your options before committing to a platform, migration, or new build.', ['Architecture assessments', 'Modernization roadmaps', 'Technology selection'], services[6]],
+      ['cloud', 'Cloud & delivery platforms', 'Prepare your infrastructure and delivery process for the applications your business depends on.', ['Cloud migration & foundations', 'Infrastructure automation', 'DevOps & observability'], services[0]],
+      ['data', 'Data & applied AI', 'Connect business data and test where AI can support a specific, measurable workflow.', ['Data pipelines & platforms', 'Analytics foundations', 'AI integration & evaluation'], services[1]],
+      ['java', 'Enterprise software', 'Modernize existing applications or build services that work with the systems you already use.', ['Java & Spring applications', 'APIs & system integration', 'Application modernization'], services[3]],
+    ].map(([icon, title, text, scope, service], index) => <article key={title}><div className="practice-meta"><ServiceIcon name={icon} /><span>0{index + 1}</span></div><h3>{title}</h3><p>{text}</p><ul>{scope.map(point => <li key={point}>{point}</li>)}</ul><a className="text-link" href={servicePath(service.slug)} onClick={event => { event.preventDefault(); go(servicePath(service.slug)) }}>Explore {title.toLowerCase()} <span aria-hidden="true">&#8599;</span></a>{icon === 'data' && <a className="practice-secondary" href={servicePath(services[2].slug)} onClick={event => { event.preventDefault(); go(servicePath(services[2].slug)) }}>AI & machine learning services <span aria-hidden="true">&#8599;</span></a>}</article>)}</div></div></section>
     <FeaturedWork />
     <IndustryOverview />
-    <section className="section container editorial-tech"><Heading eyebrow="07 / Technology stack" title="Technologies we work with." text="Explore the tools used across our services. We recommend a stack based on your existing systems and project requirements." /><div className="tabs" role="group" aria-label="Technology categories">{Object.keys(technologyCategories).map((name) => <button type="button" aria-pressed={category === name} className={category === name ? 'active' : ''} onClick={() => setCategory(name)} key={name}>{name}</button>)}</div><TechStack items={technologyCategories[category]} /></section>
-    <section className="section container engineering-principles"><Heading eyebrow="08 / Why Infrixon" title="Practical decisions. Visible delivery." text="Technical work is easier to own when the decisions, trade-offs, and progress are clear." /><div className="principle-grid">{[principles[0], principles[3], principles[5]].map(([number, title, text], index) => <article key={number}><span>0{index + 1}</span><h3>{title}</h3><p>{text}</p></article>)}</div></section>
-    <section className="editorial-contact"><div className="container contact-inner"><span className="eyebrow">Let’s build</span><div className="contact-main"><h2>Tell us what<br /><em className="brand-gradient">you’re working on.</em></h2><a className="contact-circle" href="/contact" onClick={(event) => { event.preventDefault(); go('/contact') }} aria-label="Start a conversation">↗</a></div><div className="editorial-contact-bottom"><p>Planning a migration, a new data platform,<br />an AI product, or an enterprise application?</p><a href="mailto:work@infrixtechnologies.com">work@infrixtechnologies.com ↗</a></div></div></section>
+
+    <section className="section container engagement-section"><Heading eyebrow="Working together" title="Start with the support you need." text="Choose a technical review, specialist support, or a defined delivery project." /><div className="engagement-grid">{[
+      ['consulting', 'A technical review', 'You need a second opinion before making a decision.', ['Review the current architecture', 'Identify constraints and risks', 'Agree on recommended next steps']],
+      ['devops', 'Support for your team', 'You have a delivery team and need specialist help.', ['Define the expertise you need', 'Work within your delivery process', 'Document decisions and handover']],
+      ['java', 'A defined project', 'You need a partner to take an agreed scope through delivery.', ['Set deliverables and milestones', 'Review working increments together', 'Plan testing, release, and ownership']],
+    ].map(([icon, title, text, points]) => <article key={title}><span className="engagement-icon"><ServiceIcon name={icon} /></span><h3>{title}</h3><p>{text}</p><ul>{points.map(point => <li key={point}>{point}</li>)}</ul><a className="text-link" href="/contact" onClick={event => { event.preventDefault(); go('/contact') }}>Discuss this with us <span aria-hidden="true">&#8599;</span></a></article>)}</div></section>
+    <section className="section container practical-faq"><Heading eyebrow="Before we talk" title="A few useful answers." /><div>{homeFaqs.map(([question, answer]) => <details key={question}><summary>{question}<span aria-hidden="true">+</span></summary><p>{answer}</p></details>)}</div></section>
+    <section className="editorial-contact"><div className="container contact-inner"><span className="eyebrow">Start a conversation</span><div className="contact-main"><div><h2>What needs to<br /><em>work better?</em></h2><p className="closing-copy">Tell us about the system, project, or decision in front of you. A short outline is enough to start.</p></div><div className="closing-actions"><a className="button light" href="/contact" onClick={event => { event.preventDefault(); go('/contact') }}>Discuss your project <span aria-hidden="true">&#8599;</span></a><a className="closing-email" href="mailto:work@infrixtechnologies.com">work@infrixtechnologies.com</a><span>India ? Working with teams worldwide</span></div></div></div></section>
   </div>
 }
 
@@ -360,7 +360,7 @@ function About() {
     <PageHero
       eyebrow="About INFRIXON AI LABS"
       title="Cloud, data, AI, and software. Built with your team."
-      text="Built with ambition. Driven by innovation. Powered by Artificial Intelligence. We help organizations design, modernize, and build technology that addresses real business needs."
+      text="INFRIXON AI LABS is an IT services and consulting company based in India. We help teams plan and deliver cloud, data, AI, and enterprise software projects."
     />
 
     <section className="section container about about-story">
@@ -401,7 +401,7 @@ function About() {
     <CTA eyebrow="06 / Start a conversation" title="Tell us what you're working on." />
   </div>
 }
-function Services() { return <><PageHero eyebrow="Core services" title="Cloud, data, AI, and engineering—connected." text="Focused expertise to modernize infrastructure, improve data foundations, and build secure digital systems." /><section className="section container"><div className="service-grid all-services">{services.map((item, i) => <ServiceCard item={item} index={i} key={item.slug} />)}</div></section><CTA title="Not sure where to start? Talk to an expert." /></> }
+function Services() { return <><PageHero eyebrow="Core services" title="Cloud, data, AI, and engineering—connected." text="From technology strategy to delivery, connect the expertise you need to modernize systems and build for your next stage of growth." /><section className="section container"><div className="service-grid all-services">{services.map((item, i) => <ServiceCard item={item} index={i} key={item.slug} />)}</div></section><CTA title="Not sure where to start? Talk to an expert." /></> }
 function JavaArchitecture() { const layers = [['Client / Frontend', 'Web, mobile, and enterprise systems'], ['API Gateway', 'REST endpoints, identity, and validation'], ['Spring Boot Services', 'Spring MVC, business services, and integrations'], ['Business Logic', 'Domain rules, workflows, and event handlers'], ['Data Access', 'Spring Data JPA, Hibernate, and repositories'], ['Databases / Messaging', 'PostgreSQL, MySQL, Redis, and Kafka']]; return <section className="section soft"><div className="container"><Heading eyebrow="Reference architecture" title="A clear path from client to data layer." text="The design is tailored to your current platform, security, performance, and operational requirements." /><div className="java-architecture" aria-label="Java and Spring application architecture">{layers.map(([title, detail], index) => <div className="java-architecture-step" key={title}><article><span>0{index + 1}</span><div><strong>{title}</strong><small>{detail}</small></div></article>{index < layers.length - 1 && <b aria-hidden="true">↓</b>}</div>)}</div><div className="java-platform-note"><strong>Deployment platform</strong><span>Docker · Kubernetes · Cloud infrastructure · CI/CD · Observability</span></div></div></section> }
 function ServicePage({ item }) {
   const [open, setOpen] = useState(0)
@@ -418,7 +418,7 @@ function ServicePage({ item }) {
       <section className="section soft">
         <div className="container">
           <Heading eyebrow="Core capabilities" title="Practical work, scoped to your needs." />
-          <div className="capabilities">{item.features.map((feature, index) => <article key={feature}><b>0{index + 1}</b><h3>{feature}</h3><p>Defined with your team and aligned to your goals, systems, and constraints.</p></article>)}</div>
+          <div className="capabilities">{item.features.map((feature, index) => <article key={feature}><b>0{index + 1}</b><h3>{feature}</h3><p>{serviceDetails[item.slug][index]}</p></article>)}</div>
         </div>
       </section>
       {item.slug === 'java-spring-development' && <JavaArchitecture />}
@@ -436,18 +436,18 @@ function ServicePage({ item }) {
       </section>
       <section className="section soft service-faq"><div className="container faq">
         <Heading eyebrow="FAQ" title="Questions, answered." />
-        <div>{['What does an engagement include?', 'Can you work with our existing team?', 'How do we define the first step?'].map((question, index) => <article key={question}><button onClick={() => setOpen(open === index ? -1 : index)} aria-expanded={open === index}><span>{question}</span><b>{open === index ? '−' : '+'}</b></button>{open === index && <p>We begin by understanding the goal, current environment, and constraints, then agree on a focused scope and practical next steps.</p>}</article>)}</div>
+        <div>{['What does an engagement include?', 'Can you work with our existing team?', 'How do we define the first step?'].map((question, index) => <article key={question}><button onClick={() => setOpen(open === index ? -1 : index)} aria-expanded={open === index}><span>{question}</span><b>{open === index ? '−' : '+'}</b></button>{open === index && <p>{['We agree on scope, deliverables, milestones, and handover with you before implementation. The engagement can cover an assessment, a specific build, or a broader modernization project.', 'Yes. We can work alongside your engineers, provide specialist expertise, or lead a defined delivery engagement with regular reviews and shared decisions.', 'Start with a discovery conversation about your business goal and current systems. Together we identify priorities and agree on a practical first step.'][index]}</p>}</article>)}</div>
       </div></section>
       <CTA title={item.slug === 'java-spring-development' ? 'Talk to an expert about Java & Spring.' : 'Talk to an expert about this service.'} />
     </>
   )
 }
-function Projects() { return <><PageHero eyebrow="Selected work" title="Practical engineering for meaningful outcomes." text="Explore representative project patterns across cloud, data, AI, and software. Every engagement is shaped around a client's goals and environment." /><section className="section container work-section"><div className="work-grid">{projectBlueprints.map(([title, text, tags], index) => <article className={`work-card work-card-${index + 1} project-${index}`} key={title}><ProjectArtwork index={index} /><div className="work-copy"><span>{tags}</span><h3>{title}</h3><p>{text}</p><a className="text-link" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact') }}>Discuss a similar challenge ↗</a></div></article>)}</div><p className="work-disclaimer">These are illustrative engagement patterns, not named client case studies or claims of completed client outcomes.</p></section><section className="section soft"><div className="container"><Heading eyebrow="How we deliver" title="A clear path from challenge to dependable delivery." text="We align technology work to business needs, keep decisions visible, and build in practical increments." /><div className="value-grid delivery-timeline">{deliverySteps.map(([number, title, text]) => <article key={number}><b>{number}</b><h3>{title}</h3><p>{text}</p></article>)}</div></div></section><CTA title="Let's make meaningful progress together." /></> }
+function Projects() { return <><PageHero eyebrow="Project approaches" title="What an engagement can look like." text="Explore example scopes for cloud, data, and AI projects. These describe possible ways to work together; scope and delivery depend on your systems and priorities." /><section className="section container work-section"><div className="work-grid">{projectBlueprints.map(([title, text, tags], index) => <article className={`work-card work-card-${index + 1} project-${index}`} key={title}><ProjectArtwork index={index} /><div className="work-copy"><span>{tags}</span><h3>{title}</h3><p>{text}</p><a className="text-link" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact') }}>Discuss a similar challenge ↗</a></div></article>)}</div><p className="work-disclaimer">These are illustrative engagement patterns, not named client case studies or claims of completed client outcomes.</p></section><section className="section soft"><div className="container"><Heading eyebrow="How we deliver" title="A clear path from challenge to dependable delivery." text="We align technology work to business needs, keep decisions visible, and build in practical increments." /><div className="value-grid delivery-timeline">{deliverySteps.map(([number, title, text]) => <article key={number}><b>{number}</b><h3>{title}</h3><p>{text}</p></article>)}</div></div></section><CTA title="Let's make meaningful progress together." /></> }
 function Industries() {
   return <><PageHero eyebrow="Industries" title="Engineering shaped by your industry." text="Explore the workflows and systems our cloud, data, AI, and software capabilities can support." /><section className="section container industry-list">{industries.map((industry, index) => <article key={industry} id={industryId(industry)}><b>0{index + 1}</b><div><span className="eyebrow">Industry focus</span><h2>{industry}</h2><p>{industryFocus[industry].text}</p><a className="text-link" href="/contact" onClick={(event) => { event.preventDefault(); go('/contact') }}>Talk about {industry.toLowerCase()} ↗</a></div><i aria-hidden="true"><ServiceIcon name={industryFocus[industry].icon} /></i></article>)}</section><CTA title="Let’s discuss your systems and workflows." /></>
 }
-function Contact() { const [draftHref, setDraftHref] = useState(''); function openEnquiry(event) { event.preventDefault(); const fields = new FormData(event.currentTarget); const service = services.find((item) => item.slug === fields.get('service'))?.title || 'General enquiry'; const body = ['Name: ' + fields.get('name'), 'Business email: ' + fields.get('email'), 'Company: ' + (fields.get('company') || 'Not provided'), 'Phone: ' + (fields.get('phone') || 'Not provided'), 'Service: ' + service, '', fields.get('message')].join('\n'); const href = 'mailto:work@infrixtechnologies.com?subject=' + encodeURIComponent('Website enquiry: ' + service) + '&body=' + encodeURIComponent(body); setDraftHref(href); window.location.assign(href); } return <><PageHero eyebrow="Contact" title="Talk to the Infrixon team." text="Tell us about your project, current systems, and the technical help you need." /><section className="section container contact"><div><span className="eyebrow">Start a conversation</span><h2>What are you planning to build or improve?</h2><p>Prepare an email using the form to outline your cloud, data, AI, security, or engineering needs. For a direct conversation, email our team.</p><div className="contact-details"><span>Business email</span><a href="mailto:work@infrixtechnologies.com">work@infrixtechnologies.com</a><span>Location</span><p>India · Serving teams worldwide</p></div></div><form onSubmit={openEnquiry}><div className="form-row"><label>Name<input required autoComplete="name" name="name" placeholder="Your name" /></label><label>Business email<input required autoComplete="email" type="email" name="email" placeholder="you@company.com" /></label></div><div className="form-row"><label>Company<input autoComplete="organization" name="company" placeholder="Company name" /></label><label>Phone (optional)<input autoComplete="tel" type="tel" name="phone" placeholder="Your phone number" /></label></div><label>Service interested in<select required name="service" defaultValue=""><option value="" disabled>Choose a service</option>{services.map((service) => <option key={service.slug} value={service.slug}>{service.title}</option>)}</select></label><label>Message<textarea required name="message" rows="5" placeholder="What are you trying to build or improve?" /></label><button className="button primary" type="submit">Continue in email ↗</button><p className="form-help">Opens your email app with these details. Send the draft there to complete your enquiry.</p>{draftHref && <p className="success" role="status">Your email draft is ready. <a href={draftHref}>Open the draft again ↗</a></p>}</form></section><div className="container contact-banner"><h2>Prefer email?</h2><a className="button primary" href="mailto:work@infrixtechnologies.com">Email Infrixon ↗</a></div></> }
-function Chat() { const [open, setOpen] = useState(false); const [messages, setMessages] = useState([]); const [input, setInput] = useState(''); const [loading, setLoading] = useState(false); const [error, setError] = useState(''); async function sendMessage(event) { event.preventDefault(); const content = input.trim(); if (!content || loading) return; const nextMessages = [...messages, { role: 'user', content }]; setMessages(nextMessages); setInput(''); setError(''); setLoading(true); try { const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ messages: nextMessages }) }); if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Assistant unavailable'); const result = await response.json(); if (!response.ok || typeof result.message !== 'string' || !result.message.trim()) throw new Error('Assistant unavailable'); setMessages([...nextMessages, { role: 'assistant', content: result.message }]) } catch { setError('The assistant is unavailable right now. Please contact our team below.') } finally { setLoading(false) } } return <div className="chat">{open && <section className="chat-panel" role="dialog" aria-label="INFRIXON AI LABS assistant"><div className="chat-header"><div><span className="eyebrow">INFRIXON AI LABS</span><strong>Ask our assistant</strong></div><button type="button" onClick={() => setOpen(false)} aria-label="Close assistant">×</button></div><div className="chat-messages" role="log" aria-live="polite" aria-label="Conversation">{messages.length === 0 && <p className="chat-intro">Ask about cloud, data, AI, Java/Spring, or platform engineering.</p>}{messages.map((item, index) => <p className={`chat-message ${item.role}`} key={`${item.role}-${index}`}>{item.content}</p>)}{loading && <p className="chat-intro" role="status">Thinking…</p>}</div>{error && <p className="chat-error" role="alert">{error}</p>}<form className="chat-form" onSubmit={sendMessage}><label className="sr-only" htmlFor="assistant-message">Your message</label><input id="assistant-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={2000} placeholder="Ask a question…" disabled={loading} /><button className="button primary" type="submit" disabled={loading || !input.trim()} aria-label="Send message">{loading ? '…' : 'Send'}</button></form><a className="chat-contact" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact'); setOpen(false) }}>Or contact our team ↗</a></section>}<button type="button" onClick={() => setOpen(!open)} aria-expanded={open} aria-label={open ? 'Close assistant' : 'Open assistant'}>✦ <b>{open ? 'Close' : 'Ask a question'}</b></button></div> }
+function Contact() { const [draftHref, setDraftHref] = useState(''); function openEnquiry(event) { event.preventDefault(); const fields = new FormData(event.currentTarget); const service = services.find((item) => item.slug === fields.get('service'))?.title || 'General enquiry'; const body = ['Name: ' + fields.get('name'), 'Business email: ' + fields.get('email'), 'Company: ' + (fields.get('company') || 'Not provided'), 'Phone: ' + (fields.get('phone') || 'Not provided'), 'Service: ' + service, '', fields.get('message')].join('\n'); const href = 'mailto:work@infrixtechnologies.com?subject=' + encodeURIComponent('Website enquiry: ' + service) + '&body=' + encodeURIComponent(body); setDraftHref(href); window.location.assign(href); } return <><PageHero eyebrow="Contact" title="Talk to the Infrixon team." text="Share the problem you want to solve, the systems involved, and where you need support. We can start there." /><section className="section container contact"><div><span className="eyebrow">Start a conversation</span><h2>What are you planning to build or improve?</h2><p>Prepare an email using the form to outline your cloud, data, AI, security, or engineering needs. For a direct conversation, email our team.</p><div className="contact-details"><span>Business email</span><a href="mailto:work@infrixtechnologies.com">work@infrixtechnologies.com</a><span>Location</span><p>India · Serving teams worldwide</p></div><aside className="contact-next"><h3>Helpful details to include</h3><ul><li>The problem and the outcome you need</li><li>Your existing technology and team</li><li>Any deadlines or delivery constraints</li></ul><p>A short outline is enough. We can discuss the technical detail together.</p></aside></div><form onSubmit={openEnquiry}><div className="form-row"><label>Name<input required autoComplete="name" name="name" placeholder="Your name" maxLength={100} /></label><label>Business email<input required autoComplete="email" type="email" name="email" placeholder="you@company.com" /></label></div><div className="form-row"><label>Company<input autoComplete="organization" name="company" placeholder="Company name" maxLength={150} /></label><label>Phone (optional)<input autoComplete="tel" type="tel" name="phone" placeholder="Your phone number" /></label></div><label>Service interested in<select required name="service" defaultValue=""><option value="" disabled>Choose a service</option><option value="general">I need help deciding</option>{services.map((service) => <option key={service.slug} value={service.slug}>{service.title}</option>)}</select></label><label>Message<textarea required name="message" rows="5" placeholder="What needs to change? Tell us about your current systems, the outcome you need, and any timing or budget constraints." maxLength={5000} /></label><button className="button primary" type="submit">Continue in email ↗</button><p className="form-help">Opens your email app with these details. Send the draft there to complete your enquiry.</p>{draftHref && <p className="success" role="status">Your email draft is ready. <a href={draftHref}>Open the draft again ↗</a></p>}</form></section><div className="container contact-banner"><h2>Prefer email?</h2><a className="button primary" href="mailto:work@infrixtechnologies.com">Email Infrixon ↗</a></div></> }
+function Chat() { const inputRef = useRef(null); const launcherRef = useRef(null); const logRef = useRef(null); const [open, setOpen] = useState(false); const [messages, setMessages] = useState([]); const [input, setInput] = useState(''); const [loading, setLoading] = useState(false); const [error, setError] = useState(''); useEffect(() => { if (!open) return; inputRef.current?.focus(); const close = (event) => { if (event.key === 'Escape') { setOpen(false); launcherRef.current?.focus() } }; window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close) }, [open]); useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight }, [messages, loading, open]); async function sendMessage(event) { event.preventDefault(); const content = input.trim(); if (!content || loading) return; const nextMessages = [...messages, { role: 'user', content }]; setMessages(nextMessages); setInput(''); setError(''); setLoading(true); try { const response = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: AbortSignal.timeout(25000), body: JSON.stringify({ messages: nextMessages.slice(-12) }) }); if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Assistant unavailable'); const result = await response.json(); if (!response.ok || typeof result.message !== 'string' || !result.message.trim()) throw new Error('Assistant unavailable'); setMessages([...nextMessages, { role: 'assistant', content: result.message }]) } catch { setError('The assistant is unavailable right now. Please contact our team below.') } finally { setLoading(false) } } return <div className="chat">{open && <section id="assistant-panel" className="chat-panel" role="dialog" aria-label="INFRIXON AI LABS assistant"><div className="chat-header"><div><span className="eyebrow">INFRIXON AI LABS</span><strong>Ask our assistant</strong></div><button type="button" onClick={() => { setOpen(false); launcherRef.current?.focus() }} aria-label="Close assistant">×</button></div><div ref={logRef} className="chat-messages" role="log" aria-live="polite" aria-label="Conversation">{messages.length === 0 && <p className="chat-intro">Ask about cloud, data, AI, Java/Spring, or platform engineering.</p>}{messages.map((item, index) => <p className={`chat-message ${item.role}`} key={`${item.role}-${index}`}>{item.content}</p>)}{loading && <p className="chat-intro" role="status">Thinking…</p>}</div>{error && <p className="chat-error" role="alert">{error}</p>}<form className="chat-form" onSubmit={sendMessage}><label className="sr-only" htmlFor="assistant-message">Your message</label><input ref={inputRef} id="assistant-message" value={input} onChange={(event) => setInput(event.target.value)} maxLength={2000} placeholder="Ask a question…" disabled={loading} /><button className="button primary" type="submit" disabled={loading || !input.trim()} aria-label="Send message">{loading ? '…' : 'Send'}</button></form><a className="chat-contact" href="/contact" onClick={(e) => { e.preventDefault(); go('/contact'); setOpen(false) }}>Or contact our team ↗</a></section>}<button ref={launcherRef} type="button" onClick={() => setOpen(!open)} aria-controls="assistant-panel" aria-expanded={open} aria-label={open ? 'Close assistant' : 'Open assistant'}>✦ <b>{open ? 'Close' : 'Ask a question'}</b></button></div> }
 const routeDescriptions = {
   '/': 'INFRIXON AI LABS partners with businesses on cloud engineering, data platforms, AI solutions, Java and Spring development, DevOps, and technology consulting.',
   '/about': 'Learn how INFRIXON AI LABS helps organizations modernize cloud, data, AI, Java, and enterprise software systems.',
@@ -457,7 +457,7 @@ const routeDescriptions = {
   '/contact': 'Talk with INFRIXON AI LABS about cloud, data, AI, Java & Spring, security, or software engineering.',
 }
 
-function Seo({ path }) { useEffect(() => { const service = services.find((item) => path === servicePath(item.slug)); const titles = { '/': 'INFRIXON AI LABS | Cloud, Data, AI & Software Engineering', '/about': 'About | INFRIXON AI LABS', '/services': 'Services | INFRIXON AI LABS', '/portfolio': 'Work | INFRIXON AI LABS', '/industries': 'Industries | INFRIXON AI LABS', '/contact': 'Contact | INFRIXON AI LABS' }; const title = service ? `${service.title} | INFRIXON AI LABS` : titles[path] || 'INFRIXON AI LABS'; const description = routeDescriptions[path] || service?.description || routeDescriptions['/']; document.title = title; for (const [selector, value] of [['meta[name="description"]', description], ['meta[property="og:title"]', title], ['meta[property="og:description"]', description], ['meta[name="twitter:title"]', title], ['meta[name="twitter:description"]', description]]) { const tag = document.querySelector(selector); if (tag) tag.setAttribute('content', value) } }, [path]); return null }
+function Seo({ path }) { useEffect(() => { const service = services.find((item) => path === servicePath(item.slug)); const titles = { '/': 'INFRIXON AI LABS | Cloud, Data, AI & Software Engineering', '/about': 'About | INFRIXON AI LABS', '/services': 'Services | INFRIXON AI LABS', '/portfolio': 'Project approaches | INFRIXON AI LABS', '/industries': 'Industries | INFRIXON AI LABS', '/contact': 'Contact | INFRIXON AI LABS' }; const title = service ? `${service.title} | INFRIXON AI LABS` : titles[path] || 'INFRIXON AI LABS'; const description = routeDescriptions[path] || service?.description || routeDescriptions['/']; document.title = title; for (const [selector, value] of [['meta[name="description"]', description], ['meta[property="og:title"]', title], ['meta[property="og:description"]', description], ['meta[name="twitter:title"]', title], ['meta[name="twitter:description"]', description]]) { const tag = document.querySelector(selector); if (tag) tag.setAttribute('content', value) } }, [path]); return null }
 function NotFound() { return <><PageHero eyebrow="Page not found" title="Let’s get you back on track." text="That page does not exist, but there is plenty more to explore." /><section className="section container"><a className="button primary" href="/" onClick={(event) => { event.preventDefault(); go('/') }}>Back to home ↗</a></section></> }
 function App() {
   const [path, setPath] = useState(window.location.pathname.replace(/\/$/, '') || '/')
@@ -481,7 +481,7 @@ function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#061820' : '#F7F9F8')
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#071321' : '#F7F9FC')
     try { window.localStorage.setItem('infrixon-theme', theme) } catch { /* Keep the toggle working without storage. */ }
   }, [theme])
 
@@ -489,7 +489,7 @@ function App() {
   let page = <Home />
   if (path === '/about') page = <About />
   else if (path === '/services') page = <Services />
-  else if (item) page = <ServicePage item={item} />
+  else if (item) page = <ServicePage key={item.slug} item={item} />
   else if (path === '/portfolio') page = <Projects />
   else if (path === '/industries') page = <Industries />
   else if (path === '/contact') page = <Contact />
@@ -499,7 +499,7 @@ function App() {
     <Seo path={path} />
     <a className="skip-link" href="#main-content">Skip to content</a>
     <Header path={path} theme={theme} onThemeToggle={() => setTheme(theme === 'light' ? 'dark' : 'light')} />
-    <main id="main-content">{page}</main>
+    <main id="main-content" tabIndex={-1}>{page}</main>
     <Footer />
     <Chat />
   </div>
