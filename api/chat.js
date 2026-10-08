@@ -1,5 +1,5 @@
 const SYSTEM_PROMPT = `
-You are the website assistant for Infrixon AI Technologies.
+You are the website assistant for INFRIXON AI LABS.
 Be concise, practical, and business-friendly.
 Focus on the company's services: cloud engineering, data engineering, AI and machine learning, Java and Spring development, DevOps and platform engineering, cybersecurity, and IT consulting.
 When the user asks how to proceed, suggest contacting the team. Do not claim certifications, clients, project results, pricing, or timelines unless provided in the conversation.
@@ -75,7 +75,7 @@ export default async function handler(req, res) {
     const message = data?.choices?.[0]?.message?.content
 
     res.status(200).json({
-      message: message || 'I can help with Infrixon AI Technologies services.',
+      message: message || 'I can help with INFRIXON AI LABS services.',
     })
   } catch (error) {
     res.status(500).json({

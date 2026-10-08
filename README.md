@@ -1,162 +1,59 @@
-# Infrixon AI Technologies Website
+# INFRIXON AI LABS website
 
-Premium React frontend for **INFRIXON AI TECHNOLOGIES**, a cloud, data, AI, and software engineering company offering Java and Spring enterprise application development.
+React and Vite company website for cloud, data, AI, Java/Spring, DevOps, cybersecurity, and enterprise consulting. The work examples describe illustrative engagement patterns; they are not named client case studies.
 
-This project is a responsive React and Vite website for a technology engineering consultancy. It includes a service catalog, client-side routes, contact form preview, and a Groq-backed assistant endpoint.
+## Local development
 
-## Overview
+Use Node.js 24 (see .nvmrc), then:
 
-- Enterprise-style homepage for Infrixon AI Technologies
-- React + Vite frontend
-- Responsive layout for desktop, tablet, and mobile
-- Bottom-right AI assistant widget
-- Groq-backed assistant through `/api/chat` (Vite development middleware and serverless handler)
-- Brand-aligned design using the Infrixon SVG wordmark and mark
-
-## Tech Stack
-
-- React 18
-- Vite
-- CSS3
-- Simple Icons for technology brand marks
-- Groq Chat Completions API
-
-The showcased engineering technologies are grouped into Cloud, Data, AI & ML, Backend, DevOps, and Databases. The Java service includes Java, Spring Boot, Spring MVC, Spring Data JPA, Spring Security, Hibernate, Maven, Gradle, REST APIs, Kafka, PostgreSQL, MySQL, Redis, Docker, and Kubernetes.
-
-## Features
-
-- Premium hero section and company positioning
-- Cloud engineering, data engineering, AI/ML, Java & Spring, DevOps, cybersecurity, and IT consulting pages
-- Industries, delivery approach, technology stack, and contact pages
-- Mobile-optimized navigation and layout
-- Responsive navigation with service dropdown
-- Accessible technology stack marks and chat interactions
-- Server-side API key handling through environment variables
-- Contact form validation with an explicit preview-only status (no email delivery backend)
-
-## Project Structure
-
-```text
-.
-├── api/
-│   └── chat.js
-├── public/
-│   └── assets/
-│       ├── infrixon-ai-technologies.png
-│       └── infrixon-mark.svg
-├── src/
-│   ├── Heading.jsx
-│   ├── PlatformModel.jsx
-│   ├── ServiceIcon.jsx
-│   ├── TechStack.jsx
-│   ├── App.jsx
-│   ├── main.jsx
-│   ├── styles.css
-│   ├── tech-stack.css
-│   ├── platform-model.css
-│   ├── service-icons.css
-│   └── brand-finish.css
-├── .env
-├── index.html
-├── package.json
-├── README.md
-└── vite.config.js
-```
-
-## Getting Started
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Add environment variables
-
-Create a `.env` file in the project root:
-
-```env
-GROQ_API_KEY=your_groq_api_key_here
-```
-
-## Run Locally
-
-Start the development server:
-
-```bash
+```sh
+npm ci
 npm run dev
 ```
 
-Then open the local Vite URL shown in the terminal.
+The assistant is optional. For local chat, copy .env.example to .env and set GROQ_API_KEY. Keep the key on the server; do not prefix it with VITE_ or put it in frontend code.
 
-## Build for Production
+## Production build
 
-```bash
+```sh
 npm run build
-```
-
-Preview the production build:
-
-```bash
 npm run preview
 ```
 
-## Chatbot Setup
+The production frontend is generated in dist/. Vite preview serves the frontend only; it does not run api/chat.js.
 
-The website includes a floating assistant in the bottom-right corner.
+## Deploy to Vercel
 
-### How it works
+1. Import this repository into Vercel.
+2. Select Node.js 24 in the project settings. The included vercel.json selects Vite, runs npm run build, and serves dist/.
+3. To enable the assistant, add GROQ_API_KEY in the project's server environment variables before deploying. api/chat.js handles /api/chat.
+4. Deploy. Check a direct service URL such as /services/cloud-services and refresh it. The included SPA rewrite serves frontend routes while leaving /api/ and /assets/ requests separate.
+5. Check the theme toggle, mobile menu, contact email draft, and assistant on the deployed domain.
 
-- The React frontend sends chat requests to `/api/chat`
-- During local development, Vite middleware in `vite.config.js` handles that route
-- The middleware forwards requests to the **Groq Chat Completions API**
-- The API key stays on the server side through the `.env` file
+See [Vercel's Vite guide](https://vercel.com/docs/frameworks/frontend/vite) and [rewrite configuration](https://vercel.com/docs/project-configuration/vercel-json).
 
-### Current chatbot model
+## Other hosting
 
-```text
-llama-3.3-70b-versatile
-```
+For a static host or cPanel, upload the contents of dist/ to the site's document root. Configure the host to serve index.html for frontend routes that do not match a real file. The Vercel configuration is not used by those hosts.
 
-### Important security note
+Static hosting serves the website and contact email flow. The assistant needs a compatible server endpoint at /api/chat; copying dist/ does not deploy the Node handler. The widget shows a contact fallback when the endpoint is unavailable.
 
-Do not hardcode API keys into React components or commit them to GitHub.
+## Contact flow
 
-If a key has ever been shared publicly, rotate it before deploying.
+The contact form validates the visitor's details and opens their email application with an addressed, prefilled draft. The visitor sends that draft in their email application. The website does not claim to have sent or stored an enquiry. A configured email application is required; direct email links are also available.
 
-## Branding
+## Design and source files
 
-This website uses the supplied **INFRIXON AI TECHNOLOGIES** logo and visual theme:
+All pages use the Deep Tech Enterprise theme: warm white, dark navy (#071F2B), primary blue (#006DFF), cyan (#00BDF2), and supporting teal (#157A73), with matching dark-mode surfaces. Blue drives actions and light-mode accents; small blue text uses #005FD9 for contrast on neutral and tinted surfaces. Cyan leads on navy sections and in dark mode; teal is reserved for secondary diagram details. Manrope headings and Inter body text are served locally from public/assets/fonts/; their license files are included there.
 
-- Primary: `#0569F7`
-- Secondary: `#06173B`
-- Accent: `#00B9EF`
-- Background: `#FFFFFF`
-- Dark: `#0B1020`
+- src/App.jsx — content, routes, navigation, contact form, and assistant interface.
+- src/main.css — structural layout, responsive navigation, forms, and footer.
+- src/editorial.css — homepage sections and original technical artwork.
+- src/theme.css — shared palette, fonts, component styles, and alignment rules.
+- src/ServiceIcon.jsx and src/TechStack.jsx — service and technology icons.
+- src/PlatformModel.jsx — shared engineering-layer diagram used on About, including security across every layer.
+- api/chat.js — production serverless assistant endpoint.
+- vite.config.js — Vite and local assistant middleware.
+- vercel.json — Vercel build and frontend routing configuration.
 
-## Deployment Notes
-
-This repo currently runs well for local development with Vite.
-
-If you want production deployment with the chatbot enabled, you should host it on a platform that supports server-side API routes or backend functions, such as:
-
-- Vercel
-- Netlify Functions
-- Render
-- Node/Express custom hosting
-
-For production, the `/api/chat` logic should live in a real server function instead of relying only on Vite dev middleware.
-
-## Production Notes
-
-- The contact form currently validates input in the browser but does not submit to an email or CRM service.
-- Configure `GROQ_API_KEY` in the hosting environment before enabling `/api/chat` in production.
-- The site contains no client testimonials, customer logos, or quantified project claims unless verified content is added later.
-
-## Authoring Notes
-
-This repo was tailored for **INFRIXON AI TECHNOLOGIES** and shaped around a cloud, data, AI, and enterprise engineering design direction.
-
-## License
-
-This project is currently private and intended for INFRIXON AI TECHNOLOGIES internal/company use unless changed by the repository owner.
+The stylesheets load in the order main.css, editorial.css, theme.css. Keep shared colors and typography in theme.css so every page stays consistent.

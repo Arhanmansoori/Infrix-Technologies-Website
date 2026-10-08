@@ -10,19 +10,23 @@ const layers = [
   { title: 'Platform & DevOps', detail: 'Automation · delivery · observability', icon: 'devops' },
 ]
 
-export default function PlatformModel() {
+export default function PlatformModel({
+  eyebrow = 'Engineering model',
+  title = 'One engineering partner across your technology stack.',
+  text = 'Applications, AI, data, cloud, and platform engineering work together—with security considered across every layer.',
+}) {
   return (
     <section className="section platform-section">
       <div className="container">
         <Heading
-          eyebrow="Engineering model"
-          title="One engineering partner across your technology stack."
-          text="Applications, AI, data, cloud, and platform engineering work together—with security considered across every layer."
+          eyebrow={eyebrow}
+          title={title}
+          text={text}
         />
         <div className="platform-layout">
-          <div className="platform-stack" aria-label="Engineering platform layers">
+          <ol className="platform-stack" aria-label="Engineering platform layers">
             {layers.map((layer, index) => (
-              <div className="platform-step" key={layer.title}>
+              <li className="platform-step" key={layer.title}>
                 <article className="platform-layer">
                   <span className="platform-index">0{index + 1}</span>
                   <span className="platform-icon"><ServiceIcon name={layer.icon} /></span>
@@ -32,9 +36,9 @@ export default function PlatformModel() {
                   </span>
                 </article>
                 {index < layers.length - 1 && <span className="platform-arrow" aria-hidden="true">↓</span>}
-              </div>
+              </li>
             ))}
-          </div>
+          </ol>
           <aside className="platform-security">
             <span className="platform-icon"><ServiceIcon name="security" /></span>
             <span><strong>Security by design</strong><small>Identity · protection · governance across every layer</small></span>

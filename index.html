@@ -3,29 +3,42 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="INFRIXON AI TECHNOLOGIES provides cloud engineering, data platforms, AI solutions, Java and Spring development, DevOps, and technology consulting." />
-    <meta name="theme-color" content="#06173b" />
+    <link rel="preload" href="/assets/fonts/inter-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/assets/fonts/manrope-latin-variable.woff2" as="font" type="font/woff2" crossorigin />
+    <meta name="description" content="INFRIXON AI LABS partners with businesses on cloud engineering, data platforms, artificial intelligence, software development, and technology consulting." />
+    <meta name="theme-color" content="#F7F9F8" />
+    <script>
+      (() => {
+        let theme;
+        try { theme = localStorage.getItem('infrixon-theme'); } catch {}
+        if (theme !== 'light' && theme !== 'dark') {
+          theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = theme;
+        document.querySelector('meta[name="theme-color"]').content = theme === 'dark' ? '#061820' : '#F7F9F8';
+      })();
+    </script>
     <meta name="robots" content="index,follow,max-image-preview:large" />
-    <meta property="og:title" content="INFRIXON AI TECHNOLOGIES | Cloud, Data, AI &amp; Software Engineering" />
+    <meta property="og:title" content="INFRIXON AI LABS | Cloud, Data, AI &amp; Software Engineering" />
     <meta property="og:description" content="Cloud engineering, data platforms, AI solutions, Java and Spring development, DevOps, and technology consulting." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="/assets/infrixon-ai-technologies.png" />
+    <meta property="og:image" content="/assets/infrixon-mark.svg" />
     <link rel="icon" type="image/svg+xml" href="/assets/infrixon-mark.svg" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="INFRIXON AI TECHNOLOGIES | Cloud, Data, AI &amp; Software Engineering" />
+    <meta name="twitter:title" content="INFRIXON AI LABS | Cloud, Data, AI &amp; Software Engineering" />
     <meta name="twitter:description" content="Cloud engineering, data platforms, AI solutions, Java and Spring development, DevOps, and technology consulting." />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": "INFRIXON AI TECHNOLOGIES",
-        "description": "Cloud engineering, data platforms, AI, Java and Spring applications, DevOps, and secure digital infrastructure.",
-        "logo": "/assets/infrixon-ai-technologies.png",
+        "name": "INFRIXON AI LABS",
+        "description": "Cloud engineering, data platforms, artificial intelligence, software development, and technology consulting.",
+        "logo": "/assets/infrixon-mark.svg",
         "url": "/",
         "sameAs": []
       }
     </script>
-    <title>INFRIXON AI TECHNOLOGIES | Cloud, Data, AI &amp; Software Engineering</title>
+    <title>INFRIXON AI LABS | Cloud, Data, AI &amp; Software Engineering</title>
     <script type="module" src="/src/main.jsx"></script>
   </head>
   <body>

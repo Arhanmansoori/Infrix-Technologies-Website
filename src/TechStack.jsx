@@ -84,7 +84,7 @@ export default function TechStack({ items }) {
         return (
           <span className="tech-badge" key={name} title={name} role="listitem">
             {icon ? (
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ color: icon.hex === '000000' ? '#ffffff' : `#${icon.hex}` }}>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ color: icon.hex === '000000' ? 'var(--ink)' : `#${icon.hex}` }}>
                 <path d={icon.path} />
               </svg>
             ) : (
